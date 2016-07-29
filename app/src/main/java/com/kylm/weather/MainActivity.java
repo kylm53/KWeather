@@ -12,27 +12,37 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 
-import com.kylm.weather.commons.APIs;
-import com.kylm.weather.model.CityInfo;
+import com.kylm.weather.model.HeWeather;
+import com.kylm.weather.presenter.WeatherPresenter;
 
 import java.util.List;
 
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, MainView<WeatherPresenter> {
+
+
+    @BindView(R.id.drawer_layout) DrawerLayout drawer;
+    @BindView(R.id.toolbar) Toolbar toolbar;
+    @BindView(R.id.fab) FloatingActionButton fab;
+    @BindView(R.id.nav_view) NavigationView navigationView;
+    @BindView(R.id.tv_weather_content) TextView content;
+
+    private WeatherPresenter presenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+
+        ButterKnife.bind(this);
+
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -41,33 +51,20 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        presenter = new WeatherPresenter(this);
+        presenter.getWeahter("CN101010100");
 
-        APIs.service.getCityList(APIs.SEARCH_TYPE_ALL_CHINA, APIs.KEY)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<CityInfo>() {
-                    @Override
-                    public void call(CityInfo cityInfo) {
-                        List<CityInfo.CityInfoBean> cities = cityInfo.getCity_info();
-                        for (CityInfo.CityInfoBean city : cities) {
-                            System.out.println(city.getId() + ":" +city.getCity());
-                        }
-                    }
-                });
     }
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -117,8 +114,42 @@ public class MainActivity extends AppCompatActivity
 
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    public void showWeatherInfo(HeWeather.WeatherBean weather) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(weather.getBasic().getCity())
+                .append("-")
+                .append(weather.getBasic().getCnty())
+                .append("\n");
+
+        List<HeWeather.WeatherBean.DailyForecastBean> dailyForecastList = weather.getDaily_forecast();
+        for (HeWeather.WeatherBean.DailyForecastBean dailyForecastBean : dailyForecastList) {
+            builder.append("时间：").append(dailyForecastBean.getDate()).append("\n");
+            builder.append("日出时间：").append(dailyForecastBean.getAstro().getSr()).append("\n");
+            builder.append("日落时间：").append(dailyForecastBean.getAstro().getSs()).append("\n");
+            builder.append("白天：").append(dailyForecastBean.getCond().getTxt_d()).append("\n");
+            builder.append("夜间：").append(dailyForecastBean.getCond().getTxt_n()).append("\n");
+            builder.append("湿度(%)：").append(dailyForecastBean.getHum()).append("\n");
+            builder.append("降雨量(mm)：").append(dailyForecastBean.getPcpn()).append("\n");
+            builder.append("降水概率：").append(dailyForecastBean.getPop()).append("\n");
+            builder.append("气压：").append(dailyForecastBean.getPres()).append("\n");
+            builder.append("能见度(km)：").append(dailyForecastBean.getVis()).append("\n");
+            builder.append("最高温度(摄氏度)：").append(dailyForecastBean.getTmp().getMax()).append("\n");
+            builder.append("最低温度(摄氏度)：").append(dailyForecastBean.getTmp().getMin()).append("\n");
+            builder.append("风速(Kmph)：").append(dailyForecastBean.getWind().getSpd()).append("\n");
+            builder.append("风力等级：").append(dailyForecastBean.getWind().getSc()).append("\n");
+            builder.append("风向(方向)：").append(dailyForecastBean.getWind().getDir()).append("\n\n");
+        }
+        content.setText(builder.toString());
+
+    }
+
+
+    @Override
+    public void setPresenter(WeatherPresenter presenter) {
     }
 }
