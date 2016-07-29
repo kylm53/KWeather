@@ -19,15 +19,15 @@ public class HeWeather {
      * suggestion : {"comf":{"brf":"较不舒适","txt":"白天天气多云，同时会感到有些热，不很舒适。"},"cw":{"brf":"不宜","txt":"不宜洗车，未来24小时内有雨，如果在此期间洗车，雨水和路上的泥水可能会再次弄脏您的爱车。"},"drsg":{"brf":"炎热","txt":"天气炎热，建议着短衫、短裙、短裤、薄型T恤衫等清凉夏季服装。"},"flu":{"brf":"少发","txt":"各项气象条件适宜，发生感冒机率较低。但请避免长期处于空调房间中，以防感冒。"},"sport":{"brf":"较适宜","txt":"天气较好，户外运动请注意防晒，推荐您在室内进行低强度运动。"},"trav":{"brf":"适宜","txt":"天气较好，但丝毫不会影响您的心情。微风，虽天气稍热，却仍适宜旅游，不要错过机会呦！"},"uv":{"brf":"中等","txt":"属中等强度紫外线辐射天气，外出时建议涂擦SPF高于15、PA+的防晒护肤品，戴帽子、太阳镜。"}}
      */
 
-    @SerializedName("weather data service 3.0")
+    @SerializedName("HeWeather data service 3.0")
     private List<WeatherBean> weather;
 
     public List<WeatherBean> getWeather() {
         return weather;
     }
 
-    public void setWeather(List<WeatherBean> HeWeather) {
-        this.weather = HeWeather;
+    public void setWeather(List<WeatherBean> weather) {
+        this.weather = weather;
     }
 
     public static class WeatherBean {
