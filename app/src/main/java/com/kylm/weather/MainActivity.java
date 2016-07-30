@@ -121,11 +121,62 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void showWeatherInfo(HeWeather.WeatherBean weather) {
         StringBuilder builder = new StringBuilder();
+
+        //basic 城市基本信息
         builder.append(weather.getBasic().getCity())
                 .append("-")
                 .append(weather.getBasic().getCnty())
-                .append("\n");
+                .append("\n")
+                .append("更新时间：")
+                .append(weather.getBasic().getUpdate().getLoc())
+                .append("\n\n");
 
+        //aqi 空气质量指数
+        builder.append("空气质量指数:").append(weather.getAqi().getCity().getAqi()).append("\n");
+        builder.append("PM2.5:").append(weather.getAqi().getCity().getPm25()).append("\n");
+        builder.append("PM10:").append(weather.getAqi().getCity().getPm10()).append("\n");
+        builder.append("二氧化硫1小时平均值so2(ug/m³):").append(weather.getAqi().getCity().getSo2()).append("\n");
+        builder.append("二氧化氮1小时平均值no2(ug/m³):").append(weather.getAqi().getCity().getSo2()).append("\n");
+        builder.append("一氧化碳1小时平均值(ug/m³):").append(weather.getAqi().getCity().getCo()).append("\n");
+        builder.append("臭氧1小时平均值(ug/m³):").append(weather.getAqi().getCity().getO3()).append("\n");
+        builder.append("空气质量类别:").append(weather.getAqi().getCity().getQlty()).append("\n\n");
+
+        //suggestion 生活指数
+        builder.append("穿衣指数:").append(weather.getSuggestion().getDrsg().getBrf()).append("\n");
+        builder.append("紫外线指数:").append(weather.getSuggestion().getUv().getBrf()).append("\n");
+        builder.append("洗车指数:").append(weather.getSuggestion().getCw().getBrf()).append("\n");
+        builder.append("旅游指数:").append(weather.getSuggestion().getTrav().getBrf()).append("\n");
+        builder.append("感冒指数:").append(weather.getSuggestion().getFlu().getBrf()).append("\n");
+        builder.append("运动指数:").append(weather.getSuggestion().getSport().getBrf()).append("\n\n");
+
+        //now 实况天气
+        builder.append("实况天气---").append("\n");
+        builder.append("当前温度(摄氏度):").append(weather.getNow().getTmp()).append("\n");
+        builder.append("体感温度:").append(weather.getNow().getFl()).append("\n");
+        builder.append("风速(Kmph):").append(weather.getNow().getWind().getSpd()).append("\n");
+        builder.append("风力等级:").append(weather.getNow().getWind().getSc()).append("\n");
+        builder.append("风向(角度):").append(weather.getNow().getWind().getDeg()).append("\n");
+        builder.append("风向(方向):").append(weather.getNow().getWind().getDir()).append("\n");
+        builder.append("天气状况:").append(weather.getNow().getCond().getTxt()).append("\n");
+        builder.append("降雨量(mm):").append(weather.getNow().getPcpn()).append("\n");
+        builder.append("湿度(%):").append(weather.getNow().getHum()).append("\n");
+        builder.append("气压:").append(weather.getNow().getPres()).append("\n");
+        builder.append("能见度(km):").append(weather.getNow().getVis()).append("\n\n");
+
+        //hourly_forecast 每小时天气预报
+        builder.append("每小时天气预报---").append("\n");
+        builder.append("当地日期和时间:").append(weather.getHourly_forecast().get(0).getDate()).append("\n");
+        builder.append("当前温度(摄氏度):").append(weather.getHourly_forecast().get(0).getTmp()).append("\n");
+        builder.append("风速(Kmph):").append(weather.getHourly_forecast().get(0).getWind().getSpd()).append("\n");
+        builder.append("风力等级:").append(weather.getHourly_forecast().get(0).getWind().getSc()).append("\n");
+        builder.append("风向(角度):").append(weather.getHourly_forecast().get(0).getWind().getDeg()).append("\n");
+        builder.append("风向(方向):").append(weather.getHourly_forecast().get(0).getWind().getDir()).append("\n");
+        builder.append("降水概率:").append(weather.getHourly_forecast().get(0).getPop()).append("\n");
+        builder.append("湿度(%):").append(weather.getHourly_forecast().get(0).getHum()).append("\n");
+        builder.append("气压:").append(weather.getHourly_forecast().get(0).getPres()).append("\n\n");
+
+        //daily_forecast 天气预报
+        builder.append("天气预报---").append("\n");
         List<HeWeather.WeatherBean.DailyForecastBean> dailyForecastList = weather.getDaily_forecast();
         for (HeWeather.WeatherBean.DailyForecastBean dailyForecastBean : dailyForecastList) {
             builder.append("时间：").append(dailyForecastBean.getDate()).append("\n");
