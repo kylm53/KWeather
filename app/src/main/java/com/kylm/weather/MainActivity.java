@@ -31,6 +31,13 @@ public class MainActivity extends AppCompatActivity
     @BindView(R.id.fab) FloatingActionButton fab;
     @BindView(R.id.nav_view) NavigationView navigationView;
     @BindView(R.id.tv_weather_content) TextView content;
+    @BindView(R.id.tv_city) TextView city;
+    @BindView(R.id.tv_condition) TextView condition;
+    @BindView(R.id.tv_tmp) TextView currentTemperature;
+    @BindView(R.id.tv_tmp_high) TextView highTemperature;
+    @BindView(R.id.tv_tmp_low) TextView lowTemperature;
+    @BindView(R.id.tv_wind) TextView wind;
+    @BindView(R.id.tv_hum) TextView hum;
 
     private WeatherPresenter presenter;
 
@@ -120,6 +127,14 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void showWeatherInfo(HeWeather.WeatherBean weather) {
+        city.setText(weather.getBasic().getCity());
+        condition.setText(weather.getNow().getCond().getTxt());
+        currentTemperature.setText(weather.getNow().getTmp());
+        lowTemperature.setText(weather.getDaily_forecast().get(0).getTmp().getMin() + "°");
+        highTemperature.setText(weather.getDaily_forecast().get(0).getTmp().getMax() + "°");
+        wind.setText(weather.getNow().getWind().getDir() + " " + weather.getNow().getWind().getSc());
+        hum.setText(weather.getNow().getHum() + "%");
+
         StringBuilder builder = new StringBuilder();
 
         //basic 城市基本信息

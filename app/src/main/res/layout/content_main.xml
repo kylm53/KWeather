@@ -4,10 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
+    android:background="@drawable/blur_bg0_fine_day"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.kylm.weather.MainActivity"
     tools:showIn="@layout/app_bar_main">
@@ -19,13 +16,110 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="50dp">
+
+                <TextView
+                    android:id="@+id/tv_city"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginBottom="10dp"
+                    android:text="北京"
+                    android:textSize="20sp" />
+
+                <TextView
+                    android:id="@+id/tv_condition"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/tv_city"
+                    android:layout_centerHorizontal="true"
+                    android:text="睛"
+                    android:textSize="20sp" />
+
+                <TextView
+                    android:id="@+id/tv_tmp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/tv_condition"
+                    android:layout_centerInParent="true"
+                    android:text="31"
+                    android:textSize="120sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_toRightOf="@+id/tv_tmp"
+                    android:text="°"
+                    android:textSize="120sp" />
+
+                <TextView
+                    android:id="@+id/tv_tmp_low"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/tv_tmp"
+                    android:layout_toLeftOf="@+id/tv_gap"
+                    android:text="22"
+                    android:textSize="20sp" />
+
+                <TextView
+                    android:id="@+id/tv_gap"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/tv_tmp"
+                    android:layout_centerHorizontal="true"
+                    android:text="/"
+                    android:textSize="20sp" />
+
+                <TextView
+                    android:id="@+id/tv_tmp_high"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/tv_tmp"
+                    android:layout_toRightOf="@+id/tv_gap"
+                    android:text="32"
+                    android:textSize="20sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/tv_tmp_high"
+                    android:gravity="center">
+
+                    <TextView
+                        android:id="@+id/tv_wind"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginRight="10dp"
+                        android:drawableLeft="@drawable/main_icon_wind"
+                        android:text="2nw"
+                        android:textSize="20sp" />
+
+                    <TextView
+                        android:id="@+id/tv_hum"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:drawableLeft="@drawable/main_icon_humidity"
+                        android:text="54%"
+                        android:textSize="20sp" />
+                </LinearLayout>
+
+            </RelativeLayout>
 
             <TextView
                 android:id="@+id/tv_weather_content"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Hello World!" />
+                android:layout_marginTop="200dp"
+                android:gravity="center"
+                android:text="Hello World!°" />
         </LinearLayout>
 
     </ScrollView>
