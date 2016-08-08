@@ -22,6 +22,6 @@ public interface WeatherService {
                                      @Query("key") String key);
 
     @GET("condition")
-    Observable<ConditionInfo> getCondition(@Query("search=allcond") String searchType,
+    Observable<ConditionInfo> getCondition(@Query("search") String searchType,
                                            @Query("key") String key);
 }

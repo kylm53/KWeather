@@ -1,6 +1,8 @@
 package com.kylm.weather.model;
 
-public static class ConditionInfoBean extends RealmObject {
+import io.realm.RealmObject;
+
+public class ConditionInfoBean extends RealmObject {
         private String code;
         private String txt;
         private String txt_en;

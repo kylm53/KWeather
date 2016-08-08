@@ -20,8 +20,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.kylm.weather.commons.DateUtil;
+import com.kylm.weather.model.ConditionInfoBean;
 import com.kylm.weather.model.HeWeather;
 import com.kylm.weather.presenter.WeatherPresenter;
+import com.squareup.picasso.Picasso;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -29,6 +31,8 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.realm.Realm;
+import io.realm.RealmResults;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, MainView<WeatherPresenter> {
@@ -86,6 +90,8 @@ public class MainActivity extends AppCompatActivity
 
         presenter = new WeatherPresenter(this);
         presenter.getWeahter("CN101010100");
+
+        presenter.getCondition();
     }
 
     @Override
@@ -263,6 +269,21 @@ public class MainActivity extends AppCompatActivity
             holder.tvWeek.setText(isToday ? "今天" : week);
             holder.tvDatetime.setText(DateUtil.date2Str(date, "MM/dd"));
             holder.tvTemp.setText(forecastBean.getTmp().getMin() + "°/" + forecastBean.getTmp().getMax() + "°");
+
+            String code = forecastBean.getCond().getCode_d();
+            Realm realm = ForecastApplication.getApplication().getRealm();
+            if (realm.isEmpty()) {
+                System.out.println("realm is empty");
+            }
+            RealmResults<ConditionInfoBean> results = realm.where(ConditionInfoBean.class)
+                    .equalTo("code", code)
+                    .findAll();
+            if (!results.isEmpty()) {
+                Picasso.with(MainActivity.this).load(results.first().getIcon()).into(holder.ivForecast);
+                System.out.println(results.first().getIcon());
+            } else  {
+                System.out.println("没有结果");
+            }
         }
 
         @Override

@@ -5,6 +5,7 @@ import com.kylm.weather.MainView;
 import com.kylm.weather.commons.APIs;
 import com.kylm.weather.model.CityInfo;
 import com.kylm.weather.model.ConditionInfo;
+import com.kylm.weather.model.ConditionInfoBean;
 import com.kylm.weather.model.HeWeather;
 
 import java.util.List;
@@ -42,30 +43,29 @@ public class WeatherPresenter {
     }
 
     public void getCondition() {
-        Observable<ConditionInfo> conditionInfoObservable = APIs.service.getCondition(APIs.TYPE_CONDITION_ALL_CONDITONS, APIs.KEY);
-        conditionInfoObservable.subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<ConditionInfo>() {
-                    @Override
-                    public void call(ConditionInfo conditionInfo) {
+        final Realm realm = ForecastApplication.getApplication().getRealm();
 
-                        Realm realm = ForecastApplication.getApplication().getRealm();
+        if (realm.isEmpty()) {
+            Observable<ConditionInfo> conditionInfoObservable = APIs.service.getCondition(APIs.TYPE_CONDITION_ALL_CONDITONS, APIs.KEY);
+            conditionInfoObservable.subscribeOn(Schedulers.io())
+                    .subscribe(new Action1<ConditionInfo>() {
+                        @Override
+                        public void call(ConditionInfo conditionInfo) {
 
-                        if (realm.isEmpty()) {
-                            List<ConditionInfo.ConditionInfoBean> conditions = conditionInfo.getCond_info();
-                            for (ConditionInfo.ConditionInfoBean condition : conditions) {
+                            List<ConditionInfoBean> conditions = conditionInfo.getCond_info();
+                            for (ConditionInfoBean condition : conditions) {
                                 System.out.println(condition.getCode() + ":"
                                         + condition.getTxt() + "\n"
                                         + condition.getIcon());
 
                                 realm.beginTransaction();
-                                // Create an object
-                                ConditionInfo.ConditionInfoBean country1 = realm.copyToRealm(condition);
+                                realm.copyToRealm(condition);
                                 realm.commitTransaction();
                             }
                         }
-                    }
-                });
+                    });
+        }
+
     }
 
     public void getWeahter(String cityId) {
