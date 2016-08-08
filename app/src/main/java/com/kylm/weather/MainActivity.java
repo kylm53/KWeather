@@ -8,15 +8,23 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.DisplayMetrics;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.kylm.weather.commons.DateUtil;
 import com.kylm.weather.model.HeWeather;
 import com.kylm.weather.presenter.WeatherPresenter;
 
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import butterknife.BindView;
@@ -38,8 +46,11 @@ public class MainActivity extends AppCompatActivity
     @BindView(R.id.tv_tmp_low) TextView lowTemperature;
     @BindView(R.id.tv_wind) TextView wind;
     @BindView(R.id.tv_hum) TextView hum;
+    @BindView(R.id.rcv_forecast) RecyclerView recyclerViewForcast;
 
     private WeatherPresenter presenter;
+    List<HeWeather.WeatherBean.DailyForecastBean> dailyForecasts;
+    ForecastAdapter mForecastAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,11 +74,18 @@ public class MainActivity extends AppCompatActivity
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+        linearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
+        recyclerViewForcast.setLayoutManager(linearLayoutManager);
+//        recyclerViewForcast.setLayoutManager(new StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.HORIZONTAL));
+        mForecastAdapter = new ForecastAdapter();
+        recyclerViewForcast.setAdapter(mForecastAdapter);
+        recyclerViewForcast.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.HORIZONTAL_LIST));
+
         navigationView.setNavigationItemSelectedListener(this);
 
         presenter = new WeatherPresenter(this);
         presenter.getWeahter("CN101010100");
-
     }
 
     @Override
@@ -127,6 +145,9 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void showWeatherInfo(HeWeather.WeatherBean weather) {
+        dailyForecasts = weather.getDaily_forecast();
+        mForecastAdapter.notifyDataSetChanged();
+
         city.setText(weather.getBasic().getCity());
         condition.setText(weather.getNow().getCond().getTxt());
         currentTemperature.setText(weather.getNow().getTmp());
@@ -217,5 +238,55 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void setPresenter(WeatherPresenter presenter) {
+    }
+
+    class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.ForecastViewHolder> {
+
+        public ForecastAdapter() {
+        }
+
+        @Override
+        public ForecastViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View view = View.inflate(parent.getContext(), R.layout.item_forecast, null);
+            int screenWidth = getScreenWidth();
+            int width = screenWidth / 3;
+            view.setLayoutParams(new ViewGroup.LayoutParams(width, ViewGroup.LayoutParams.WRAP_CONTENT));
+            return new ForecastViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(ForecastViewHolder holder, int position) {
+            HeWeather.WeatherBean.DailyForecastBean forecastBean = dailyForecasts.get(position);
+            Date date = DateUtil.str2Date(forecastBean.getDate(), DateUtil.FORMAT_YMD);
+            String week = DateUtil.getWeekOfDate(date);
+            boolean isToday = DateUtil.isToday(date.getTime(), Calendar.getInstance().getTimeInMillis());
+            holder.tvWeek.setText(isToday ? "今天" : week);
+            holder.tvDatetime.setText(DateUtil.date2Str(date, "MM/dd"));
+            holder.tvTemp.setText(forecastBean.getTmp().getMin() + "°/" + forecastBean.getTmp().getMax() + "°");
+        }
+
+        @Override
+        public int getItemCount() {
+            return dailyForecasts == null ? 0 : dailyForecasts.size();
+        }
+
+        class ForecastViewHolder extends RecyclerView.ViewHolder {
+
+            @BindView(R.id.tv_datetime) TextView tvDatetime;
+            @BindView(R.id.tv_week) TextView tvWeek;
+            @BindView(R.id.iv_forecast_image) ImageView ivForecast;
+            @BindView(R.id.tv_tmp) TextView tvTemp;
+
+            public ForecastViewHolder(View itemView) {
+                super(itemView);
+                ButterKnife.bind(this, itemView);
+            }
+        }
+    }
+
+    public int getScreenWidth() {
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        return metrics.widthPixels;
     }
 }

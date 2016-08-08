@@ -113,6 +113,13 @@
 
             </RelativeLayout>
 
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/rcv_forecast"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:overScrollMode="never"
+                android:scrollbars="none" />
+
             <TextView
                 android:id="@+id/tv_weather_content"
                 android:layout_width="match_parent"

@@ -1,5 +1,6 @@
 package com.kylm.weather.presenter;
 
+import com.kylm.weather.ForecastApplication;
 import com.kylm.weather.MainView;
 import com.kylm.weather.commons.APIs;
 import com.kylm.weather.model.CityInfo;
@@ -8,6 +9,7 @@ import com.kylm.weather.model.HeWeather;
 
 import java.util.List;
 
+import io.realm.Realm;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
@@ -46,11 +48,21 @@ public class WeatherPresenter {
                 .subscribe(new Action1<ConditionInfo>() {
                     @Override
                     public void call(ConditionInfo conditionInfo) {
-                        List<ConditionInfo.ConditionInfoBean> conditions = conditionInfo.getCond_info();
-                        for (ConditionInfo.ConditionInfoBean condition : conditions) {
-                            System.out.println(condition.getCode() + ":"
-                                    + condition.getTxt() + "\n"
-                                    + condition.getIcon());
+
+                        Realm realm = ForecastApplication.getApplication().getRealm();
+
+                        if (realm.isEmpty()) {
+                            List<ConditionInfo.ConditionInfoBean> conditions = conditionInfo.getCond_info();
+                            for (ConditionInfo.ConditionInfoBean condition : conditions) {
+                                System.out.println(condition.getCode() + ":"
+                                        + condition.getTxt() + "\n"
+                                        + condition.getIcon());
+
+                                realm.beginTransaction();
+                                // Create an object
+                                ConditionInfo.ConditionInfoBean country1 = realm.copyToRealm(condition);
+                                realm.commitTransaction();
+                            }
                         }
                     }
                 });

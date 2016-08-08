@@ -2,8 +2,10 @@ package com.kylm.weather.model;
 
 import java.util.List;
 
+import io.realm.RealmObject;
+
 /**
- * Created by kanyi on 2016/7/29.
+ * Created by kangyi on 2016/7/29.
  */
 public class ConditionInfo {
 
@@ -38,7 +40,7 @@ public class ConditionInfo {
         this.cond_info = cond_info;
     }
 
-    public static class ConditionInfoBean {
+    public static class ConditionInfoBean extends RealmObject {
         private String code;
         private String txt;
         private String txt_en;
