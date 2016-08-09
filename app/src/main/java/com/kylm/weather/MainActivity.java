@@ -1,9 +1,7 @@
 package com.kylm.weather;
 
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -40,9 +38,7 @@ public class MainActivity extends AppCompatActivity
 
     @BindView(R.id.drawer_layout) DrawerLayout drawer;
     @BindView(R.id.toolbar) Toolbar toolbar;
-    @BindView(R.id.fab) FloatingActionButton fab;
     @BindView(R.id.nav_view) NavigationView navigationView;
-    @BindView(R.id.tv_weather_content) TextView content;
     @BindView(R.id.tv_city) TextView city;
     @BindView(R.id.tv_condition) TextView condition;
     @BindView(R.id.tv_tmp) TextView currentTemperature;
@@ -65,14 +61,6 @@ public class MainActivity extends AppCompatActivity
 
         setSupportActionBar(toolbar);
         toolbar.getBackground().setAlpha(0);
-
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
 
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -238,7 +226,7 @@ public class MainActivity extends AppCompatActivity
             builder.append("风力等级：").append(dailyForecastBean.getWind().getSc()).append("\n");
             builder.append("风向(方向)：").append(dailyForecastBean.getWind().getDir()).append("\n\n");
         }
-        content.setText(builder.toString());
+        System.out.println(builder.toString());
 
     }
 
