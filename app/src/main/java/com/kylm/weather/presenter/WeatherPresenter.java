@@ -1,6 +1,5 @@
 package com.kylm.weather.presenter;
 
-import com.kylm.weather.ForecastApplication;
 import com.kylm.weather.MainView;
 import com.kylm.weather.commons.APIs;
 import com.kylm.weather.model.CityInfo;
@@ -43,7 +42,7 @@ public class WeatherPresenter {
     }
 
     public void getCondition() {
-        final Realm realm = ForecastApplication.getApplication().getRealm();
+        Realm realm = Realm.getDefaultInstance();
 
         if (realm.isEmpty()) {
             Observable<ConditionInfo> conditionInfoObservable = APIs.service.getCondition(APIs.TYPE_CONDITION_ALL_CONDITONS, APIs.KEY);
@@ -52,6 +51,8 @@ public class WeatherPresenter {
                         @Override
                         public void call(ConditionInfo conditionInfo) {
 
+                            //realm 在创建线程使用
+                            Realm realm = Realm.getDefaultInstance();
                             List<ConditionInfoBean> conditions = conditionInfo.getCond_info();
                             for (ConditionInfoBean condition : conditions) {
                                 System.out.println(condition.getCode() + ":"
@@ -62,9 +63,11 @@ public class WeatherPresenter {
                                 realm.copyToRealm(condition);
                                 realm.commitTransaction();
                             }
+                            realm.close();
                         }
                     });
         }
+        realm.close();
 
     }
 

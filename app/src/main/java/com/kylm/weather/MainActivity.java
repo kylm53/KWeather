@@ -64,6 +64,7 @@ public class MainActivity extends AppCompatActivity
         ButterKnife.bind(this);
 
         setSupportActionBar(toolbar);
+        toolbar.getBackground().setAlpha(0);
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -271,7 +272,7 @@ public class MainActivity extends AppCompatActivity
             holder.tvTemp.setText(forecastBean.getTmp().getMin() + "°/" + forecastBean.getTmp().getMax() + "°");
 
             String code = forecastBean.getCond().getCode_d();
-            Realm realm = ForecastApplication.getApplication().getRealm();
+            Realm realm = Realm.getDefaultInstance();
             if (realm.isEmpty()) {
                 System.out.println("realm is empty");
             }
@@ -284,6 +285,7 @@ public class MainActivity extends AppCompatActivity
             } else  {
                 System.out.println("没有结果");
             }
+            realm.close();
         }
 
         @Override
