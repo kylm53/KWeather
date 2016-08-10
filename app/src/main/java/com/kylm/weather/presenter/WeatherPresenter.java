@@ -3,6 +3,7 @@ package com.kylm.weather.presenter;
 import com.kylm.weather.MainView;
 import com.kylm.weather.commons.APIs;
 import com.kylm.weather.model.CityInfo;
+import com.kylm.weather.model.CityInfoBean;
 import com.kylm.weather.model.ConditionInfo;
 import com.kylm.weather.model.ConditionInfoBean;
 import com.kylm.weather.model.HeWeather;
@@ -33,8 +34,8 @@ public class WeatherPresenter {
                 .subscribe(new Action1<CityInfo>() {
                     @Override
                     public void call(CityInfo cityInfo) {
-                        List<CityInfo.CityInfoBean> cities = cityInfo.getCity_info();
-                        for (CityInfo.CityInfoBean city : cities) {
+                        List<CityInfoBean> cities = cityInfo.getCity_info();
+                        for (CityInfoBean city : cities) {
                             System.out.println(city.getId() + ":" +city.getCity());
                         }
                     }

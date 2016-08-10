@@ -4,17 +4,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/blur_bg0_fine_day"
+
     android:orientation="vertical"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.kylm.weather.MainActivity"
     tools:showIn="@layout/app_bar_main">
 
     <RelativeLayout
-        android:layout_weight="1"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="60dp">
+        android:layout_marginTop="60dp"
+        android:layout_weight="1">
 
         <TextView
             android:id="@+id/tv_city"
@@ -24,6 +24,13 @@
             android:layout_marginBottom="10dp"
             android:text="北京"
             android:textSize="20sp" />
+
+        <ImageView
+            android:id="@+id/iv_condition"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@+id/tv_degree_unit"
+            android:src="@drawable/unknown" />
 
         <TextView
             android:id="@+id/tv_condition"
@@ -44,11 +51,11 @@
             android:textSize="120sp" />
 
         <TextView
+            android:id="@+id/tv_degree_unit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
+            android:layout_alignBottom="@+id/tv_tmp"
             android:layout_toRightOf="@+id/tv_tmp"
-            android:layout_centerInParent="true"
             android:text="°"
             android:textSize="120sp" />
 

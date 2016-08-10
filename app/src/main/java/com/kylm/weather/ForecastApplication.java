@@ -18,6 +18,7 @@ public class ForecastApplication extends Application {
 
         RealmConfiguration realmConfig = new RealmConfiguration.Builder(this)
                 .name("forecast.realm")
+                .deleteRealmIfMigrationNeeded()
                 .build();
         Realm.setDefaultConfiguration(realmConfig);
     }
