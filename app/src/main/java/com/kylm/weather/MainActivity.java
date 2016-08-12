@@ -15,12 +15,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
 
 import com.baidu.location.BDLocation;
 import com.google.common.collect.Lists;
 import com.kylm.weather.model.CityInfoBean;
 import com.kylm.weather.presenter.WeatherPresenter;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -72,15 +74,16 @@ public class MainActivity extends AppCompatActivity
         presenter.getCondition();
         presenter.getCityList();
 
+        realm = Realm.getDefaultInstance();
         //test
         final Set<String> citySet = new HashSet<>();
         citySet.add("CN101010100");
         citySet.add("CN101010200");
 
-        PreferenceManager.getDefaultSharedPreferences(this)
-                .edit()
-                .putStringSet(KEY_CITY_IDS, citySet)
-                .commit();
+//        PreferenceManager.getDefaultSharedPreferences(this)
+//                .edit()
+//                .putStringSet(KEY_CITY_IDS, citySet)
+//                .commit();
         /////////////////////////
         initCities();
         pagerAdapter = new CityAdapter(getSupportFragmentManager());
@@ -95,30 +98,32 @@ public class MainActivity extends AppCompatActivity
                 RealmResults<CityInfoBean> results = realm.where(CityInfoBean.class)
                         .beginsWith("city", district)
                         .findAll();
-                if (results.size() > 0) {
+                if (results != null && results.size() > 0) {
                     CityInfoBean locatedCity = results.first();
                     cities.set(0, locatedCity);
-//                    pagerAdapter.notifyDataSetChanged();
-                    ((CityForecastFragment) pagerAdapter.getItem(0)).refresh(locatedCity);
+                    pagerAdapter.notifyDataSetChanged();
+//                    ((CityForecastFragment) pagerAdapter.getItem(0)).refresh(locatedCity);
                 }
             }
         });
     }
 
     private void initCities() {
+        cities = new ArrayList<>();
+        cities.add(new CityInfoBean());
         SharedPreferences preference = PreferenceManager.getDefaultSharedPreferences(this);
         Set<String> cityIds = preference.getStringSet(KEY_CITY_IDS, null);
-        Iterator<String> iterator = cityIds.iterator();
-        realm = Realm.getDefaultInstance();
-        RealmQuery<CityInfoBean> query = realm.where(CityInfoBean.class);
-        while (iterator.hasNext()) {
-            String id = iterator.next();
-            query.equalTo("id", id).or();
+        if (cityIds != null) {
+            Iterator<String> iterator = cityIds.iterator();
+            RealmQuery<CityInfoBean> query = realm.where(CityInfoBean.class);
+            while (iterator.hasNext()) {
+                String id = iterator.next();
+                query.equalTo("id", id).or();
+            }
+            RealmResults<CityInfoBean> results = query.findAll();
+            Iterator<CityInfoBean> cityInfoBeanIterator = results.iterator();
+            cities.addAll(Lists.newArrayList(cityInfoBeanIterator));
         }
-        RealmResults<CityInfoBean> results = query.findAll();
-        Iterator<CityInfoBean> cityInfoBeanIterator = results.iterator();
-        cities = Lists.newArrayList(cityInfoBeanIterator);
-        cities.add(0, new CityInfoBean());
 //        pagerAdapter.notifyDataSetChanged();
     }
 
@@ -185,8 +190,11 @@ public class MainActivity extends AppCompatActivity
 
     class CityAdapter extends FragmentPagerAdapter {
 
+        FragmentManager mFragmentManager;
+
         public CityAdapter(FragmentManager fm) {
             super(fm);
+            this.mFragmentManager = fm;
         }
 
         @Override
@@ -200,6 +208,35 @@ public class MainActivity extends AppCompatActivity
             return CityForecastFragment.newInstance(cityInfoBean);
         }
 
+        public int getItemPosition(Object item) {
+            CityForecastFragment fragment = (CityForecastFragment)item;
+
+            CityInfoBean cityInfo = fragment.getCityInfo();
+            int position = cities.indexOf(cityInfo);
+
+            if (position >= 0) {
+                return position;
+            } else {
+                return POSITION_NONE;
+            }
+        }
+
+        @Override
+        public Object instantiateItem(ViewGroup container, int position) {
+            List<Fragment> fragmentsList = mFragmentManager.getFragments();
+            if (fragmentsList != null && position <= (fragmentsList.size() - 1)) {
+                CityForecastFragment fragment = (CityForecastFragment) fragmentsList.get(position);
+                CityInfoBean city = cities.get(position);
+                //If the current data of the fragment changed, set the new data
+                if (!city.equals(fragment.getCityInfo())) {
+                    fragment.refresh(city);
+                }
+            } else {
+                //No fragment instance available for this index, create a new fragment by calling getItem() and show the data.
+            }
+
+            return super.instantiateItem(container, position);
+        }
     }
 
 }

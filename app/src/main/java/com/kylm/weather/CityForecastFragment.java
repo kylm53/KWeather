@@ -3,6 +3,7 @@ package com.kylm.weather;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -60,12 +61,17 @@ public class CityForecastFragment extends Fragment implements MainView<WeatherPr
     @BindView(R.id.rcv_forecast) RecyclerView recyclerViewForcast;
 
     private WeatherPresenter presenter;
+    private HeWeather.WeatherBean weather;
     List<HeWeather.WeatherBean.DailyForecastBean> dailyForecasts;
     ForecastAdapter mForecastAdapter;
 
 
     public CityForecastFragment() {
         // Required empty public constructor
+    }
+
+    public CityInfoBean getCityInfo() {
+        return cityInfo;
     }
 
     /**
@@ -90,6 +96,7 @@ public class CityForecastFragment extends Fragment implements MainView<WeatherPr
         if (getArguments() != null) {
             cityInfo = getArguments().getParcelable(ARG_CITY_INFO);
             presenter = new WeatherPresenter(this);
+            mForecastAdapter = new ForecastAdapter();
             refresh(cityInfo);
         }
     }
@@ -115,10 +122,16 @@ public class CityForecastFragment extends Fragment implements MainView<WeatherPr
         linearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
         recyclerViewForcast.setLayoutManager(linearLayoutManager);
 //        recyclerViewForcast.setLayoutManager(new StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.HORIZONTAL));
-        mForecastAdapter = new ForecastAdapter();
+
         recyclerViewForcast.setAdapter(mForecastAdapter);
         recyclerViewForcast.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.HORIZONTAL_LIST));
 
+        if (weather != null) {
+            setWeather(weather);
+        }
+//          else {
+//            refresh(cityInfo);
+//        }
         return view;
     }
 
@@ -141,10 +154,16 @@ public class CityForecastFragment extends Fragment implements MainView<WeatherPr
     }
 
     @Override
-    public void showWeatherInfo(HeWeather.WeatherBean weather) {
-        dailyForecasts = weather.getDaily_forecast();
-        mForecastAdapter.notifyDataSetChanged();
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+    }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
+
+    private void setWeather(HeWeather.WeatherBean weather) {
         loadIcon(weather.getNow().getCond().getCode(), conditionIcon, R.drawable.unknown);
         city.setText(weather.getBasic().getCity());
         condition.setText(weather.getNow().getCond().getTxt());
@@ -153,6 +172,15 @@ public class CityForecastFragment extends Fragment implements MainView<WeatherPr
         highTemperature.setText(weather.getDaily_forecast().get(0).getTmp().getMax() + "°");
         wind.setText(weather.getNow().getWind().getDir() + " " + weather.getNow().getWind().getSc());
         hum.setText(weather.getNow().getHum() + "%");
+    }
+
+    @Override
+    public void showWeatherInfo(HeWeather.WeatherBean weather) {
+        this.weather = weather;
+        dailyForecasts = weather.getDaily_forecast();
+        mForecastAdapter.notifyDataSetChanged();
+
+        setWeather(weather);
 
         StringBuilder builder = new StringBuilder();
 
