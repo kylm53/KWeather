@@ -8,7 +8,7 @@
     android:orientation="vertical"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.kylm.weather.MainActivity"
-    tools:showIn="@layout/app_bar_main">
+    tools:showIn="@layout/fragment_city_forecast">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -22,7 +22,7 @@
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:layout_marginBottom="10dp"
-            android:text="北京"
+            android:text="--"
             android:textSize="20sp" />
 
         <ImageView
@@ -38,7 +38,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/tv_city"
             android:layout_centerHorizontal="true"
-            android:text="睛"
+            android:text="-"
             android:textSize="20sp" />
 
         <TextView
@@ -47,7 +47,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/tv_condition"
             android:layout_centerInParent="true"
-            android:text="31"
+            android:text="-"
             android:textSize="120sp" />
 
         <TextView
@@ -65,7 +65,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/tv_tmp"
             android:layout_toLeftOf="@+id/tv_gap"
-            android:text="22"
+            android:text="-"
             android:textSize="20sp" />
 
         <TextView
@@ -83,7 +83,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/tv_tmp"
             android:layout_toRightOf="@+id/tv_gap"
-            android:text="32"
+            android:text="-"
             android:textSize="20sp" />
 
         <LinearLayout
@@ -98,7 +98,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginRight="10dp"
                 android:drawableLeft="@drawable/main_icon_wind"
-                android:text="2nw"
+                android:text="-"
                 android:textSize="20sp" />
 
             <TextView
@@ -107,7 +107,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
                 android:drawableLeft="@drawable/main_icon_humidity"
-                android:text="54%"
+                android:text="-%"
                 android:textSize="20sp" />
         </LinearLayout>
 

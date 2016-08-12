@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -89,7 +90,17 @@ public class CityForecastFragment extends Fragment implements MainView<WeatherPr
         if (getArguments() != null) {
             cityInfo = getArguments().getParcelable(ARG_CITY_INFO);
             presenter = new WeatherPresenter(this);
-            presenter.getWeahter(cityInfo.getId());
+            refresh(cityInfo);
+        }
+    }
+
+    public void refresh(CityInfoBean city) {
+        if ((cityInfo != city)) {
+            cityInfo = city;
+        }
+        String cityId = cityInfo.getId();
+        if (!TextUtils.isEmpty(cityId)) {
+            presenter.getWeahter(cityId);
         }
     }
 
@@ -109,13 +120,6 @@ public class CityForecastFragment extends Fragment implements MainView<WeatherPr
         recyclerViewForcast.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.HORIZONTAL_LIST));
 
         return view;
-    }
-
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
     }
 
     @Override

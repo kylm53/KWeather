@@ -18,7 +18,7 @@ import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
 /**
- * Created by kanyi on 2016/7/29.
+ * Created by kangyi on 2016/7/29.
  */
 public class WeatherPresenter {
     private MainView view;
@@ -28,24 +28,34 @@ public class WeatherPresenter {
     }
 
     public void getCityList() {
-        Observable<CityInfo> cityInfoObservable = APIs.service.getCityList(APIs.TYPE_ALL_CHINA, APIs.KEY);
-        cityInfoObservable.subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<CityInfo>() {
-                    @Override
-                    public void call(CityInfo cityInfo) {
-                        List<CityInfoBean> cities = cityInfo.getCity_info();
-                        for (CityInfoBean city : cities) {
-                            System.out.println(city.getId() + ":" +city.getCity());
+        Realm realm = Realm.getDefaultInstance();
+        if (realm.where(CityInfoBean.class).findAll().isEmpty()) {
+            Observable<CityInfo> cityInfoObservable = APIs.service.getCityList(APIs.TYPE_ALL_CHINA, APIs.KEY);
+            cityInfoObservable.subscribeOn(Schedulers.io())
+                    .subscribe(new Action1<CityInfo>() {
+                        @Override
+                        public void call(CityInfo cityInfo) {
+                            //realm 在创建线程使用
+                            Realm realm = Realm.getDefaultInstance();
+                            List<CityInfoBean> cities = cityInfo.getCity_info();
+                            realm.beginTransaction();
+                            for (CityInfoBean city : cities) {
+                                System.out.println(city.getId() + ":" +city.getCity());
+
+                                realm.copyToRealm(city);
+                            }
+                            realm.commitTransaction();
+                            realm.close();
                         }
-                    }
-                });
+                    });
+        }
+        realm.close();
     }
 
     public void getCondition() {
         Realm realm = Realm.getDefaultInstance();
 
-        if (realm.isEmpty()) {
+        if (realm.where(ConditionInfoBean.class).findAll().isEmpty()) {
             Observable<ConditionInfo> conditionInfoObservable = APIs.service.getCondition(APIs.TYPE_CONDITION_ALL_CONDITONS, APIs.KEY);
             conditionInfoObservable.subscribeOn(Schedulers.io())
                     .subscribe(new Action1<ConditionInfo>() {
@@ -55,15 +65,15 @@ public class WeatherPresenter {
                             //realm 在创建线程使用
                             Realm realm = Realm.getDefaultInstance();
                             List<ConditionInfoBean> conditions = conditionInfo.getCond_info();
+                            realm.beginTransaction();
                             for (ConditionInfoBean condition : conditions) {
                                 System.out.println(condition.getCode() + ":"
                                         + condition.getTxt() + "\n"
                                         + condition.getIcon());
 
-                                realm.beginTransaction();
                                 realm.copyToRealm(condition);
-                                realm.commitTransaction();
                             }
+                            realm.commitTransaction();
                             realm.close();
                         }
                     });

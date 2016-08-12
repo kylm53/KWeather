@@ -1,6 +1,8 @@
 package com.kylm.weather;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -14,18 +16,27 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.baidu.location.BDLocation;
+import com.google.common.collect.Lists;
 import com.kylm.weather.model.CityInfoBean;
 import com.kylm.weather.presenter.WeatherPresenter;
 
-import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.realm.Realm;
+import io.realm.RealmQuery;
+import io.realm.RealmResults;
 import me.relex.circleindicator.CircleIndicator;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+
+    public static final String KEY_CITY_IDS = "cityIds";
 
     @BindView(R.id.drawer_layout)
     DrawerLayout drawer;
@@ -39,6 +50,8 @@ public class MainActivity extends AppCompatActivity
     CircleIndicator indicator;
 
     List<CityInfoBean> cities;
+    CityAdapter pagerAdapter;
+    Realm realm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,29 +70,56 @@ public class MainActivity extends AppCompatActivity
 
         WeatherPresenter presenter = new WeatherPresenter(null);
         presenter.getCondition();
+        presenter.getCityList();
 
         //test
-        cities = new ArrayList<>();
-        CityInfoBean bean = new CityInfoBean();
-        bean.setCity("北京");
-        bean.setCnty("中国");
-        bean.setId("CN101010100");
-        bean.setLat("");
-        bean.setLon("");
-        bean.setProv("北京");
-        cities.add(bean);
+        final Set<String> citySet = new HashSet<>();
+        citySet.add("CN101010100");
+        citySet.add("CN101010200");
 
-        CityInfoBean bean2 = new CityInfoBean();
-        bean2.setCity("海淀");
-        bean2.setCnty("中国");
-        bean2.setId("CN101010200");
-        bean2.setLat("");
-        bean2.setLon("");
-        bean2.setProv("北京");
-        cities.add(bean2);
+        PreferenceManager.getDefaultSharedPreferences(this)
+                .edit()
+                .putStringSet(KEY_CITY_IDS, citySet)
+                .commit();
         /////////////////////////
-        viewPager.setAdapter(new CityAdapter(getSupportFragmentManager()));
+        initCities();
+        pagerAdapter = new CityAdapter(getSupportFragmentManager());
+        viewPager.setAdapter(pagerAdapter);
         indicator.setViewPager(viewPager);
+
+        ((ForecastApplication)getApplication()).setLocationCallback(new ForecastApplication.LocationCallback() {
+            @Override
+            public void onLocationCallback(BDLocation location) {
+                String district = location.getDistrict();
+                district = district.substring(0, district.length() - 1);
+                RealmResults<CityInfoBean> results = realm.where(CityInfoBean.class)
+                        .beginsWith("city", district)
+                        .findAll();
+                if (results.size() > 0) {
+                    CityInfoBean locatedCity = results.first();
+                    cities.set(0, locatedCity);
+//                    pagerAdapter.notifyDataSetChanged();
+                    ((CityForecastFragment) pagerAdapter.getItem(0)).refresh(locatedCity);
+                }
+            }
+        });
+    }
+
+    private void initCities() {
+        SharedPreferences preference = PreferenceManager.getDefaultSharedPreferences(this);
+        Set<String> cityIds = preference.getStringSet(KEY_CITY_IDS, null);
+        Iterator<String> iterator = cityIds.iterator();
+        realm = Realm.getDefaultInstance();
+        RealmQuery<CityInfoBean> query = realm.where(CityInfoBean.class);
+        while (iterator.hasNext()) {
+            String id = iterator.next();
+            query.equalTo("id", id).or();
+        }
+        RealmResults<CityInfoBean> results = query.findAll();
+        Iterator<CityInfoBean> cityInfoBeanIterator = results.iterator();
+        cities = Lists.newArrayList(cityInfoBeanIterator);
+        cities.add(0, new CityInfoBean());
+//        pagerAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -137,6 +177,11 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        realm.close();
+    }
 
     class CityAdapter extends FragmentPagerAdapter {
 
@@ -154,6 +199,7 @@ public class MainActivity extends AppCompatActivity
             CityInfoBean cityInfoBean = cities.get(position);
             return CityForecastFragment.newInstance(cityInfoBean);
         }
+
     }
 
 }
