@@ -1,9 +1,12 @@
 package com.kylm.weather;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -12,18 +15,23 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.TextView;
 
 import com.baidu.location.BDLocation;
 import com.google.common.collect.Lists;
 import com.kylm.weather.model.CityInfoBean;
 import com.kylm.weather.presenter.WeatherPresenter;
+import com.nikhilpanju.recyclerviewenhanced.RecyclerTouchListener;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -51,9 +59,17 @@ public class MainActivity extends AppCompatActivity
     @BindView(R.id.indicator)
     CircleIndicator indicator;
 
+    ImageButton addCity;
+
+    RecyclerView selectedCity;
+    SelectedCityRecyclerAdapter selectedCityRecyclerAdapter;
+    RecyclerTouchListener onTouchListener;
+
     List<CityInfoBean> cities;
-    CityAdapter pagerAdapter;
+    CityPagerAdapter pagerAdapter;
     Realm realm;
+    SharedPreferences preference;
+    Set<String> cityIds;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,27 +86,66 @@ public class MainActivity extends AppCompatActivity
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        WeatherPresenter presenter = new WeatherPresenter(null);
+        preference = PreferenceManager.getDefaultSharedPreferences(this);
+
+        addCity = (ImageButton) navigationView.getHeaderView(0).findViewById(R.id.iv_add_city);
+        addCity.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, AddCityActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        selectedCity = (RecyclerView) navigationView.getHeaderView(0).findViewById(R.id.rcv_selected_city);
+        selectedCityRecyclerAdapter = new SelectedCityRecyclerAdapter();
+        selectedCity.setAdapter(selectedCityRecyclerAdapter);
+        selectedCity.setLayoutManager(new LinearLayoutManager(this));
+        selectedCity.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL_LIST));
+        onTouchListener = new RecyclerTouchListener(this, selectedCity);
+        onTouchListener.setSwipeable(true);
+        onTouchListener.setSwipeOptionViews(R.id.delete)
+                .setSwipeable(R.id.rowFG, R.id.rowBG, new RecyclerTouchListener.OnSwipeOptionsClickListener() {
+                    @Override
+                    public void onSwipeOptionClicked(int viewID, int position) {
+                        if (viewID == R.id.delete) {
+                            // Do something
+                            Snackbar.make(selectedCity, "delete " + position, Snackbar.LENGTH_SHORT).show();
+
+                            cityIds.remove(cities.get(position).getId());
+                            preference.edit()
+                                    .putStringSet(KEY_CITY_IDS, cityIds)
+                                    .apply();
+                            cities.remove(position);
+                            selectedCityRecyclerAdapter.notifyDataSetChanged();
+                            pagerAdapter.notifyDataSetChanged();
+                        }
+                    }
+                });
+        onTouchListener.setLongClickable(true, new RecyclerTouchListener.OnRowLongClickListener() {
+            @Override
+            public void onRowLongClicked(int position) {
+                if (position != 0) {
+                    onTouchListener.openSwipeOptions(position);
+                }
+            }
+        });
+
+        selectedCity.addOnItemTouchListener(onTouchListener);
+
+
+        WeatherPresenter presenter = new WeatherPresenter(null, this);
         presenter.getCondition();
         presenter.getCityList();
 
         realm = Realm.getDefaultInstance();
-        //test
-        final Set<String> citySet = new HashSet<>();
-        citySet.add("CN101010100");
-        citySet.add("CN101010200");
 
-//        PreferenceManager.getDefaultSharedPreferences(this)
-//                .edit()
-//                .putStringSet(KEY_CITY_IDS, citySet)
-//                .commit();
-        /////////////////////////
         initCities();
-        pagerAdapter = new CityAdapter(getSupportFragmentManager());
+        pagerAdapter = new CityPagerAdapter(getSupportFragmentManager());
         viewPager.setAdapter(pagerAdapter);
         indicator.setViewPager(viewPager);
 
-        ((ForecastApplication)getApplication()).setLocationCallback(new ForecastApplication.LocationCallback() {
+        ForecastApplication.getApplication().setLocationCallback(new ForecastApplication.LocationCallback() {
             @Override
             public void onLocationCallback(BDLocation location) {
                 String district = location.getDistrict();
@@ -102,23 +157,30 @@ public class MainActivity extends AppCompatActivity
                     CityInfoBean locatedCity = results.first();
                     cities.set(0, locatedCity);
                     pagerAdapter.notifyDataSetChanged();
+                    selectedCityRecyclerAdapter.notifyDataSetChanged();
 //                    ((CityForecastFragment) pagerAdapter.getItem(0)).refresh(locatedCity);
                 }
             }
         });
+        ForecastApplication.getApplication().mLocationClient.requestLocation();
     }
 
     private void initCities() {
         cities = new ArrayList<>();
         cities.add(new CityInfoBean());
-        SharedPreferences preference = PreferenceManager.getDefaultSharedPreferences(this);
-        Set<String> cityIds = preference.getStringSet(KEY_CITY_IDS, null);
-        if (cityIds != null) {
+        cityIds = preference.getStringSet(KEY_CITY_IDS, null);
+        if (cityIds != null && cityIds.size() > 0) {
             Iterator<String> iterator = cityIds.iterator();
             RealmQuery<CityInfoBean> query = realm.where(CityInfoBean.class);
+            boolean isFirst = true;
             while (iterator.hasNext()) {
                 String id = iterator.next();
-                query.equalTo("id", id).or();
+                if (!isFirst) {
+                    query.or();
+                } else {
+                    isFirst = false;
+                }
+                query.equalTo("id", id);
             }
             RealmResults<CityInfoBean> results = query.findAll();
             Iterator<CityInfoBean> cityInfoBeanIterator = results.iterator();
@@ -151,9 +213,9 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
+//        if (id == R.id.action_add) {
+//            return true;
+//        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -188,11 +250,11 @@ public class MainActivity extends AppCompatActivity
         realm.close();
     }
 
-    class CityAdapter extends FragmentPagerAdapter {
+    class CityPagerAdapter extends FragmentPagerAdapter {
 
         FragmentManager mFragmentManager;
 
-        public CityAdapter(FragmentManager fm) {
+        public CityPagerAdapter(FragmentManager fm) {
             super(fm);
             this.mFragmentManager = fm;
         }
@@ -239,4 +301,35 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+
+    class SelectedCityRecyclerAdapter extends RecyclerView.Adapter<SelectedCityRecyclerAdapter.CityViewHolder> {
+
+        @Override
+        public CityViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View view = View.inflate(parent.getContext(), R.layout.seleced_city_row, null);
+            return new CityViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(CityViewHolder holder, int position) {
+            CityInfoBean city = cities.get(position);
+            holder.tvCity.setText(city.getCity());
+            holder.tvCity.setTextColor(Color.BLACK);
+        }
+
+        @Override
+        public int getItemCount() {
+            return cities == null ? 0 : cities.size();
+        }
+
+        class CityViewHolder extends RecyclerView.ViewHolder {
+            @BindView(android.R.id.text1)
+            TextView tvCity;
+
+            public CityViewHolder(View itemView) {
+                super(itemView);
+                ButterKnife.bind(this, itemView);
+            }
+        }
+    }
 }

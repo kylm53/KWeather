@@ -1,7 +1,10 @@
 package com.kylm.weather.presenter;
 
+import android.content.Context;
+
 import com.kylm.weather.MainView;
 import com.kylm.weather.commons.APIs;
+import com.kylm.weather.commons.WeatherService;
 import com.kylm.weather.model.CityInfo;
 import com.kylm.weather.model.CityInfoBean;
 import com.kylm.weather.model.ConditionInfo;
@@ -23,14 +26,16 @@ import rx.schedulers.Schedulers;
 public class WeatherPresenter {
     private MainView view;
 
-    public WeatherPresenter(MainView view) {
+    private WeatherService service;
+    public WeatherPresenter(MainView view, Context context) {
         this.view = view;
+        service = APIs.getService(context);
     }
 
     public void getCityList() {
         Realm realm = Realm.getDefaultInstance();
         if (realm.where(CityInfoBean.class).findAll().isEmpty()) {
-            Observable<CityInfo> cityInfoObservable = APIs.service.getCityList(APIs.TYPE_ALL_CHINA, APIs.KEY);
+            Observable<CityInfo> cityInfoObservable = service.getCityList(APIs.TYPE_ALL_CHINA, APIs.KEY);
             cityInfoObservable.subscribeOn(Schedulers.io())
                     .subscribe(new Action1<CityInfo>() {
                         @Override
@@ -56,7 +61,7 @@ public class WeatherPresenter {
         Realm realm = Realm.getDefaultInstance();
 
         if (realm.where(ConditionInfoBean.class).findAll().isEmpty()) {
-            Observable<ConditionInfo> conditionInfoObservable = APIs.service.getCondition(APIs.TYPE_CONDITION_ALL_CONDITONS, APIs.KEY);
+            Observable<ConditionInfo> conditionInfoObservable = service.getCondition(APIs.TYPE_CONDITION_ALL_CONDITONS, APIs.KEY);
             conditionInfoObservable.subscribeOn(Schedulers.io())
                     .subscribe(new Action1<ConditionInfo>() {
                         @Override
@@ -83,7 +88,7 @@ public class WeatherPresenter {
     }
 
     public void getWeahter(String cityId) {
-        Observable<HeWeather> heWeatherObservable = APIs.service.getWeather(cityId, APIs.KEY);
+        Observable<HeWeather> heWeatherObservable = service.getWeather(cityId, APIs.KEY);
         heWeatherObservable.subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<HeWeather>() {

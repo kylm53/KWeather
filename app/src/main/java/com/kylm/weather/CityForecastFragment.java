@@ -95,7 +95,7 @@ public class CityForecastFragment extends Fragment implements MainView<WeatherPr
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             cityInfo = getArguments().getParcelable(ARG_CITY_INFO);
-            presenter = new WeatherPresenter(this);
+            presenter = new WeatherPresenter(this, getContext());
             mForecastAdapter = new ForecastAdapter();
             refresh(cityInfo);
         }
