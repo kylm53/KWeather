@@ -20,6 +20,7 @@ import com.kylm.weather.model.CityInfoBean;
 import com.kylm.weather.model.ConditionInfoBean;
 import com.kylm.weather.model.HeWeather;
 import com.kylm.weather.presenter.WeatherPresenter;
+import com.kylm.weather.widget.DividerItemDecoration;
 import com.squareup.picasso.Picasso;
 
 import java.util.Calendar;

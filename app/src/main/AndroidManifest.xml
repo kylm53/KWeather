@@ -43,14 +43,15 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".AddCityActivity" />
+        <activity
+            android:name=".AddCityActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
 
         <service
             android:name="com.baidu.location.f"
             android:enabled="true"
             android:process=":remote" />
 
-        <activity android:name=".AddCityActivity"></activity>
     </application>
 
 </manifest>

@@ -29,6 +29,7 @@ import com.baidu.location.BDLocation;
 import com.google.common.collect.Lists;
 import com.kylm.weather.model.CityInfoBean;
 import com.kylm.weather.presenter.WeatherPresenter;
+import com.kylm.weather.widget.DividerItemDecoration;
 import com.nikhilpanju.recyclerviewenhanced.RecyclerTouchListener;
 
 import java.util.ArrayList;
@@ -323,7 +324,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         class CityViewHolder extends RecyclerView.ViewHolder {
-            @BindView(android.R.id.text1)
+            @BindView(R.id.tv_city)
             TextView tvCity;
 
             public CityViewHolder(View itemView) {
