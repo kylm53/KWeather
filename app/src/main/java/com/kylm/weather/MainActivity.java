@@ -27,7 +27,9 @@ import android.widget.TextView;
 
 import com.baidu.location.BDLocation;
 import com.google.common.collect.Lists;
+import com.kylm.weather.commons.RxBus;
 import com.kylm.weather.model.CityInfoBean;
+import com.kylm.weather.model.RefreshEvent;
 import com.kylm.weather.presenter.WeatherPresenter;
 import com.kylm.weather.widget.DividerItemDecoration;
 import com.nikhilpanju.recyclerviewenhanced.RecyclerTouchListener;
@@ -43,6 +45,8 @@ import io.realm.Realm;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import me.relex.circleindicator.CircleIndicator;
+import rx.Subscription;
+import rx.functions.Action1;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -72,6 +76,7 @@ public class MainActivity extends AppCompatActivity
     SharedPreferences preference;
     Set<String> cityIds;
 
+    Subscription rxSubscription;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -95,6 +100,7 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, AddCityActivity.class);
                 startActivity(intent);
+                drawer.closeDrawer(GravityCompat.START);
             }
         });
 
@@ -131,6 +137,18 @@ public class MainActivity extends AppCompatActivity
                 }
             }
         });
+        onTouchListener.setClickable(new RecyclerTouchListener.OnRowClickListener() {
+            @Override
+            public void onRowClicked(int position) {
+                viewPager.setCurrentItem(position, true);
+                drawer.closeDrawer(GravityCompat.START);
+            }
+
+            @Override
+            public void onIndependentViewClicked(int independentViewID, int position) {
+
+            }
+        });
 
         selectedCity.addOnItemTouchListener(onTouchListener);
 
@@ -164,6 +182,27 @@ public class MainActivity extends AppCompatActivity
             }
         });
         ForecastApplication.getApplication().mLocationClient.requestLocation();
+        //刷新界面
+        rxSubscription = RxBus.getDefault()
+                .toObservable(RefreshEvent.class)
+                .subscribe(new Action1<RefreshEvent>() {
+                    @Override
+                    public void call(RefreshEvent refreshEvent) {
+                        switch (refreshEvent.getType()) {
+                            case RefreshEvent.ADD_CITY:
+                                CityInfoBean cityNew = refreshEvent.getCity();
+                                cities.add(cityNew);
+                                pagerAdapter.notifyDataSetChanged();
+                                selectedCityRecyclerAdapter.notifyDataSetChanged();
+                                break;
+                        }
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        System.out.println(throwable.getMessage());
+                    }
+                });
     }
 
     private void initCities() {
@@ -249,6 +288,9 @@ public class MainActivity extends AppCompatActivity
     protected void onDestroy() {
         super.onDestroy();
         realm.close();
+        if (!rxSubscription.isUnsubscribed()) {
+            rxSubscription.unsubscribe();
+        }
     }
 
     class CityPagerAdapter extends FragmentPagerAdapter {

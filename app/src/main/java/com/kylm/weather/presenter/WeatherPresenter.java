@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.kylm.weather.MainView;
 import com.kylm.weather.commons.APIs;
+import com.kylm.weather.commons.PinYinUtil;
 import com.kylm.weather.commons.WeatherService;
 import com.kylm.weather.model.CityInfo;
 import com.kylm.weather.model.CityInfoBean;
@@ -18,6 +19,7 @@ import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
+import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
 /**
@@ -37,16 +39,25 @@ public class WeatherPresenter {
         if (realm.where(CityInfoBean.class).findAll().isEmpty()) {
             Observable<CityInfo> cityInfoObservable = service.getCityList(APIs.TYPE_ALL_CHINA, APIs.KEY);
             cityInfoObservable.subscribeOn(Schedulers.io())
-                    .subscribe(new Action1<CityInfo>() {
+                    .map(new Func1<CityInfo, List<CityInfoBean>>() {
                         @Override
-                        public void call(CityInfo cityInfo) {
+                        public List<CityInfoBean> call(CityInfo cityInfo) {
+                            List<CityInfoBean> cities = cityInfo.getCity_info();
+                            for (CityInfoBean city : cities) {
+                                city.setFullPinyin(PinYinUtil.getPinYin(city.getCity()));
+                                city.setHeaderPinyin(PinYinUtil.getPinYinHeadChar(city.getCity()));
+                            }
+                            return cities;
+                        }
+                    })
+                    .subscribe(new Action1<List<CityInfoBean>>() {
+                        @Override
+                        public void call(List<CityInfoBean> cities) {
                             //realm 在创建线程使用
                             Realm realm = Realm.getDefaultInstance();
-                            List<CityInfoBean> cities = cityInfo.getCity_info();
                             realm.beginTransaction();
                             for (CityInfoBean city : cities) {
                                 System.out.println(city.getId() + ":" +city.getCity());
-
                                 realm.copyToRealm(city);
                             }
                             realm.commitTransaction();

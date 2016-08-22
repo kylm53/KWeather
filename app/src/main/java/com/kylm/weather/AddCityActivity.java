@@ -58,8 +58,7 @@ public class AddCityActivity extends AppCompatActivity implements SearchViewLayo
 
         ButterKnife.bind(this);
 
-        searchBar.setCollapsedHint(getString(R.string.hint_input_city_name));
-        searchBar.setExpandedHint(getString(R.string.hint_input_city_name));
+        searchBar.setHint(getString(R.string.hint_input_city_name));
         searchBar.setOnToggleAnimationListener(this);
         searchBar.setSearchBoxListener(this);
         searchBar.setSearchListener(this);
@@ -121,7 +120,13 @@ public class AddCityActivity extends AppCompatActivity implements SearchViewLayo
         Log.d(TAG, "onTextChanged: " + s + "," + start + "," + before + "," + count);
         ArrayList<CityInfoBean> cityList = new ArrayList<>();
         if (!TextUtils.isEmpty(s)) {
-            RealmResults<CityInfoBean> results = realm.where(CityInfoBean.class).contains("city", s.toString())
+            RealmResults<CityInfoBean> results = realm
+                    .where(CityInfoBean.class)
+                    .contains("city", s.toString())
+                    .or()
+                    .contains("fullPinyin", s.toString())
+                    .or()
+                    .contains("headerPinyin", s.toString())
                     .findAll();
             Iterator<CityInfoBean> cityInfoBeanIterator = results.iterator();
             cityList = new ArrayList<>();

@@ -1,8 +1,10 @@
 package com.kylm.weather;
 
 import android.app.Fragment;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -11,13 +13,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.kylm.weather.commons.RxBus;
 import com.kylm.weather.model.CityInfoBean;
+import com.kylm.weather.model.RefreshEvent;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class SearchStaticRecyclerFragment extends Fragment {
 
+    SharedPreferences preference;
     List<CityInfoBean> cities = new ArrayList<>();
     ListViewAdapter adapter;
 
@@ -39,6 +46,12 @@ public class SearchStaticRecyclerFragment extends Fragment {
     }
 
     @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        preference = PreferenceManager.getDefaultSharedPreferences(getActivity());
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
@@ -50,7 +63,18 @@ public class SearchStaticRecyclerFragment extends Fragment {
         adapter.setListOnItemClickListener(new ListOnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-                System.out.println("click itemt" + position);
+                Set<String> citySet = preference.getStringSet(MainActivity.KEY_CITY_IDS, null);
+                if (citySet == null) {
+                    citySet = new HashSet<>();
+                }
+
+                citySet.add(cities.get(position).getId());
+                preference.edit().putStringSet(MainActivity.KEY_CITY_IDS, citySet).apply();
+                RefreshEvent event = new RefreshEvent(RefreshEvent.ADD_CITY);
+                event.setCity(cities.get(position));
+                RxBus.getDefault().send(event);
+
+                getActivity().finish();
             }
 
             @Override

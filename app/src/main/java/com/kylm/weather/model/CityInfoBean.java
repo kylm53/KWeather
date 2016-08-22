@@ -20,6 +20,8 @@ public class CityInfoBean extends RealmObject implements Parcelable {
     private String lat;
     private String lon;
     private String prov;
+    private String fullPinyin;
+    private String headerPinyin;
 
     public CityInfoBean() {
 
@@ -32,6 +34,8 @@ public class CityInfoBean extends RealmObject implements Parcelable {
         lat = in.readString();
         lon = in.readString();
         prov = in.readString();
+        fullPinyin = in.readString();
+        headerPinyin = in.readString();
     }
 
     public static final Creator<CityInfoBean> CREATOR = new Creator<CityInfoBean>() {
@@ -94,6 +98,22 @@ public class CityInfoBean extends RealmObject implements Parcelable {
         this.prov = prov;
     }
 
+    public String getFullPinyin() {
+        return fullPinyin;
+    }
+
+    public void setFullPinyin(String fullPinyin) {
+        this.fullPinyin = fullPinyin;
+    }
+
+    public String getHeaderPinyin() {
+        return headerPinyin;
+    }
+
+    public void setHeaderPinyin(String headerPinyin) {
+        this.headerPinyin = headerPinyin;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -107,5 +127,7 @@ public class CityInfoBean extends RealmObject implements Parcelable {
         dest.writeString(lat);
         dest.writeString(lon);
         dest.writeString(prov);
+        dest.writeString(fullPinyin);
+        dest.writeString(headerPinyin);
     }
 }
