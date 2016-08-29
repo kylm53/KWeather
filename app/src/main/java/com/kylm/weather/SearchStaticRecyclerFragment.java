@@ -71,7 +71,7 @@ public class SearchStaticRecyclerFragment extends Fragment {
                 citySet.add(cities.get(position).getId());
                 preference.edit().putStringSet(MainActivity.KEY_CITY_IDS, citySet).apply();
                 RefreshEvent event = new RefreshEvent(RefreshEvent.ADD_CITY);
-                event.setCity(cities.get(position));
+                event.setObject(cities.get(position));
                 RxBus.getDefault().send(event);
 
                 getActivity().finish();

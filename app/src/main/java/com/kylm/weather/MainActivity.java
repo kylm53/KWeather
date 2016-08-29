@@ -117,15 +117,15 @@ public class MainActivity extends AppCompatActivity
                     public void onSwipeOptionClicked(int viewID, int position) {
                         if (viewID == R.id.delete) {
                             // Do something
-                            Snackbar.make(selectedCity, "delete " + position, Snackbar.LENGTH_SHORT).show();
+                            Snackbar.make(selectedCity, "删除 \"" + cities.get(position).getCity() + "\"", Snackbar.LENGTH_SHORT).show();
 
                             cityIds.remove(cities.get(position).getId());
                             preference.edit()
                                     .putStringSet(KEY_CITY_IDS, cityIds)
                                     .apply();
                             cities.remove(position);
-                            selectedCityRecyclerAdapter.notifyDataSetChanged();
-                            pagerAdapter.notifyDataSetChanged();
+                            refresh();
+                            drawer.closeDrawer(GravityCompat.START);
                         }
                     }
                 });
@@ -175,8 +175,7 @@ public class MainActivity extends AppCompatActivity
                 if (results != null && results.size() > 0) {
                     CityInfoBean locatedCity = results.first();
                     cities.set(0, locatedCity);
-                    pagerAdapter.notifyDataSetChanged();
-                    selectedCityRecyclerAdapter.notifyDataSetChanged();
+                    refresh();
 //                    ((CityForecastFragment) pagerAdapter.getItem(0)).refresh(locatedCity);
                 }
             }
@@ -190,10 +189,9 @@ public class MainActivity extends AppCompatActivity
                     public void call(RefreshEvent refreshEvent) {
                         switch (refreshEvent.getType()) {
                             case RefreshEvent.ADD_CITY:
-                                CityInfoBean cityNew = refreshEvent.getCity();
+                                CityInfoBean cityNew = (CityInfoBean) refreshEvent.getObject();
                                 cities.add(cityNew);
-                                pagerAdapter.notifyDataSetChanged();
-                                selectedCityRecyclerAdapter.notifyDataSetChanged();
+                                refresh();
                                 break;
                         }
                     }
@@ -203,6 +201,12 @@ public class MainActivity extends AppCompatActivity
                         System.out.println(throwable.getMessage());
                     }
                 });
+    }
+
+    public void refresh() {
+        pagerAdapter.notifyDataSetChanged();
+        selectedCityRecyclerAdapter.notifyDataSetChanged();
+        indicator.setViewPager(viewPager);
     }
 
     private void initCities() {
