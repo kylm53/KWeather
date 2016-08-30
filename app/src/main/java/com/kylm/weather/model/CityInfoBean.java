@@ -27,8 +27,9 @@ public class CityInfoBean extends RealmObject implements Parcelable {
 
     }
 
-    public CityInfoBean(String city) {
+    public CityInfoBean(String city, String id) {
         this.city = city;
+        this.id = id;
     }
 
     protected CityInfoBean(Parcel in) {

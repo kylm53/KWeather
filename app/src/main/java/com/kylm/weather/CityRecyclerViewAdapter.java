@@ -1,6 +1,7 @@
 package com.kylm.weather;
 
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
 
 import com.kylm.weather.model.CityInfoBean;
 
@@ -13,6 +14,22 @@ import java.util.Collection;
  */
 public abstract class CityRecyclerViewAdapter<VH extends RecyclerView.ViewHolder>
         extends RecyclerView.Adapter<VH> {
+    // Define a public click listener interface for items of the v7.RecyclerView which has no OnItemClickListener by default
+    public interface ListOnItemClickListener {
+        void onItemClick(View view, int position);
+
+        void onItemLongClick(View view, int position);
+    }
+
+    private ListOnItemClickListener mOnItemClickListener;
+
+    public ListOnItemClickListener getListOnItemClickListener() {
+        return mOnItemClickListener;
+    }
+    public void setListOnItemClickListener(ListOnItemClickListener mOnItemClickListener) {
+        this.mOnItemClickListener = mOnItemClickListener;
+    }
+
     private ArrayList<CityInfoBean> items = new ArrayList<CityInfoBean>();
 
     public CityRecyclerViewAdapter() {
@@ -62,5 +79,37 @@ public abstract class CityRecyclerViewAdapter<VH extends RecyclerView.ViewHolder
     @Override
     public int getItemCount() {
         return items.size();
+    }
+
+    @Override
+    public void onBindViewHolder(VH holder, int position) {
+        onBindItemViewHolder(holder, position);
+        setOnItemClickListener(holder, position);
+    }
+
+    public abstract void onBindItemViewHolder(VH holder, int position);
+    /**
+     * 在onBindViewHolder方法中调用设置click listener
+     */
+    private void setOnItemClickListener(final VH holder, int position) {
+        // Click event called here
+        if (mOnItemClickListener != null) {
+            holder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int pos = holder.getLayoutPosition();
+                    mOnItemClickListener.onItemClick(holder.itemView, pos);
+                }
+            });
+
+            holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    int pos = holder.getLayoutPosition();
+                    mOnItemClickListener.onItemLongClick(holder.itemView, pos);
+                    return false;
+                }
+            });
+        }
     }
 }

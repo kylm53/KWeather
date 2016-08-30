@@ -22,9 +22,7 @@ import com.kylm.weather.widget.SideLetterBar;
 import com.timehop.stickyheadersrecyclerview.StickyRecyclerHeadersDecoration;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -49,12 +47,12 @@ public class AddCityActivity extends AppCompatActivity implements SearchViewLayo
     @BindView(R.id.letterbar)
     SideLetterBar letterBar;
 
-    CityHeadersAdapter adapter;
+    CityHeadersAdapter cityAdapter;
+    PopularCityAdapter popularCityAdapter;
     Realm realm;
     SearchStaticRecyclerFragment fragment;
 
     SharedPreferences preference;
-
     boolean move = false;
 
     @Override
@@ -78,24 +76,25 @@ public class AddCityActivity extends AppCompatActivity implements SearchViewLayo
         realm = Realm.getDefaultInstance();
         RealmResults<CityInfoBean> results = realm.where(CityInfoBean.class).findAllSorted("fullPinyin");
         Iterator<CityInfoBean> cityInfoBeanIterator = results.iterator();
-        adapter = new CityHeadersAdapter(this, Lists.newArrayList(cityInfoBeanIterator), false);
-        adapter.add(0, new CityInfoBean("定位城市"));
-        adapter.add(1, new CityInfoBean("热门城市"));
-        adapter.setListOnItemClickListener(new CityHeadersAdapter.ListOnItemClickListener() {
+        cityAdapter = new CityHeadersAdapter(this, Lists.newArrayList(cityInfoBeanIterator), true);
+        cityAdapter.add(0, new CityInfoBean(getString(R.string.city_located), null));
+        cityAdapter.add(1, new CityInfoBean(getString(R.string.city_popular), "0"));
+        cityAdapter.setListOnItemClickListener(new CityRecyclerViewAdapter.ListOnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-                Set<String> citySet = preference.getStringSet(MainActivity.KEY_CITY_IDS, null);
-                if (citySet == null) {
-                    citySet = new HashSet<>();
-                }
+                addCity(cityAdapter, position);
+            }
 
-                citySet.add(adapter.getItem(position).getId());
-                preference.edit().putStringSet(MainActivity.KEY_CITY_IDS, citySet).apply();
-                RefreshEvent event = new RefreshEvent(RefreshEvent.ADD_CITY);
-                event.setObject(adapter.getItem(position));
-                RxBus.getDefault().send(event);
+            @Override
+            public void onItemLongClick(View view, int position) {
 
-                finish();
+            }
+        });
+        popularCityAdapter = new PopularCityAdapter(this);
+        popularCityAdapter.setListOnItemClickListener(new CityRecyclerViewAdapter.ListOnItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
+                addCity(popularCityAdapter, position);
             }
 
             @Override
@@ -104,14 +103,16 @@ public class AddCityActivity extends AppCompatActivity implements SearchViewLayo
             }
         });
 
-        rcvCityList.setAdapter(adapter);
+        cityAdapter.setPopularCityAdapter(popularCityAdapter);
+
+        rcvCityList.setAdapter(cityAdapter);
 
 
         rcvCityList.setLayoutManager(new LinearLayoutManager(this));
         rcvCityList.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL_LIST));
 
         // Add the sticky headers decoration
-        final StickyRecyclerHeadersDecoration headersDecor = new StickyRecyclerHeadersDecoration(adapter);
+        final StickyRecyclerHeadersDecoration headersDecor = new StickyRecyclerHeadersDecoration(cityAdapter);
         rcvCityList.addItemDecoration(headersDecor);
         rcvCityList.addOnScrollListener(new RecyclerViewListener());
 
@@ -119,10 +120,31 @@ public class AddCityActivity extends AppCompatActivity implements SearchViewLayo
         letterBar.setOnLetterChangedListener(new SideLetterBar.OnLetterChangedListener() {
             @Override
             public void onLetterChanged(String letter) {
-                int position = adapter.getLetterPosition(letter);
+                int position = cityAdapter.getLetterPosition(letter);
                 moveToPosition(position);
             }
         });
+    }
+
+    private void addCity(CityRecyclerViewAdapter adapter, int position) {
+        String cityId = adapter.getItem(position).getId();
+        RefreshEvent event = new RefreshEvent();
+        //根据id查询城市
+        RealmResults<CityInfoBean> results = realm.where(CityInfoBean.class)
+                .equalTo("id", cityId)
+                .findAll();
+
+        //具体城市
+        if (results.size() > 0) {
+            event.setObject(results.first());
+        } else {//定位
+            event.setObject(adapter.getItem(position));
+        }
+
+        event.setType(RefreshEvent.ADD_CITY);
+        RxBus.getDefault().send(event);
+
+        finish();
     }
 
     private void moveToPosition(int position) {
@@ -137,7 +159,7 @@ public class AddCityActivity extends AppCompatActivity implements SearchViewLayo
         } else if (position <= lastItem) {
             //当要置顶的项已经在屏幕上显示时
             int top = rcvCityList.getChildAt(position - firstItem).getTop();
-            rcvCityList.scrollBy(0, top - adapter.getHeaderHeightPix());
+            rcvCityList.scrollBy(0, top - cityAdapter.getHeaderHeightPix());
         } else {
             //当要置顶的项在当前显示的最后一项的后面时
             rcvCityList.scrollToPosition(position);
@@ -181,17 +203,23 @@ public class AddCityActivity extends AppCompatActivity implements SearchViewLayo
         Log.d(TAG, "onTextChanged: " + s + "," + start + "," + before + "," + count);
         ArrayList<CityInfoBean> cityList = new ArrayList<>();
         if (!TextUtils.isEmpty(s)) {
+            //先按中文和首字母缩写匹配
             RealmResults<CityInfoBean> results = realm
                     .where(CityInfoBean.class)
                     .contains("city", s.toString())
                     .or()
-                    .contains("fullPinyin", s.toString())
-                    .or()
                     .contains("headerPinyin", s.toString())
-                    .findAllSorted("fullPinyin");
-            Iterator<CityInfoBean> cityInfoBeanIterator = results.iterator();
-            cityList = new ArrayList<>();
-            cityList.addAll(Lists.newArrayList(cityInfoBeanIterator));
+                    .findAll();
+            cityList.addAll(Lists.newArrayList(results.iterator()));
+
+            //再按全拼音匹配
+            results = realm.where(CityInfoBean.class)
+                    .contains("fullPinyin", s.toString())
+                    .not()
+                    .contains("headerPinyin", s.toString())
+                    .findAll();
+            cityList.addAll(Lists.newArrayList(results.iterator()));
+
         }
         fragment.refresh(cityList);
     }
@@ -216,7 +244,7 @@ public class AddCityActivity extends AppCompatActivity implements SearchViewLayo
                     //获取要置顶的项顶部离RecyclerView顶部的距离
                     int top = recyclerView.getChildAt(n).getTop();
                     //最后的移动
-                    recyclerView.scrollBy(0, top - adapter.getHeaderHeightPix());
+                    recyclerView.scrollBy(0, top - cityAdapter.getHeaderHeightPix());
                 }
             }
         }

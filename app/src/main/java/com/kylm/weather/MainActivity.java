@@ -2,7 +2,7 @@ package com.kylm.weather;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.NavigationView;
@@ -35,6 +35,7 @@ import com.kylm.weather.widget.DividerItemDecoration;
 import com.nikhilpanju.recyclerviewenhanced.RecyclerTouchListener;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -64,7 +65,7 @@ public class MainActivity extends AppCompatActivity
     @BindView(R.id.indicator)
     CircleIndicator indicator;
 
-    ImageButton addCity;
+    ImageButton btnAddCity;
 
     RecyclerView selectedCity;
     SelectedCityRecyclerAdapter selectedCityRecyclerAdapter;
@@ -87,15 +88,15 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
         toolbar.getBackground().setAlpha(0);
 
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+        final ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
         preference = PreferenceManager.getDefaultSharedPreferences(this);
 
-        addCity = (ImageButton) navigationView.getHeaderView(0).findViewById(R.id.iv_add_city);
-        addCity.setOnClickListener(new View.OnClickListener() {
+        btnAddCity = (ImageButton) navigationView.getHeaderView(0).findViewById(R.id.iv_add_city);
+        btnAddCity.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, AddCityActivity.class);
@@ -125,7 +126,6 @@ public class MainActivity extends AppCompatActivity
                                     .apply();
                             cities.remove(position);
                             refresh();
-                            drawer.closeDrawer(GravityCompat.START);
                         }
                     }
                 });
@@ -190,8 +190,20 @@ public class MainActivity extends AppCompatActivity
                         switch (refreshEvent.getType()) {
                             case RefreshEvent.ADD_CITY:
                                 CityInfoBean cityNew = (CityInfoBean) refreshEvent.getObject();
-                                cities.add(cityNew);
-                                refresh();
+                                //不是已添加城市或定位城市
+                                if (!(cities.contains(cityNew) || cityNew.getId() == null)) {
+                                    addCity(cityNew);
+                                    refresh();
+                                }
+                                int cityIndex;
+                                //定位城市
+                                if (cityNew.getId() == null) {
+                                    cityIndex  = 0;
+                                } else {
+                                    cityIndex = cities.indexOf(cityNew);
+                                }
+
+                                viewPager.setCurrentItem(cityIndex, true);
                                 break;
                         }
                     }
@@ -201,6 +213,17 @@ public class MainActivity extends AppCompatActivity
                         System.out.println(throwable.getMessage());
                     }
                 });
+    }
+
+    private void addCity(CityInfoBean city) {
+        Set<String> citySet = preference.getStringSet(MainActivity.KEY_CITY_IDS, null);
+        if (citySet == null) {
+            citySet = new HashSet<>();
+        }
+
+        citySet.add(city.getId());
+        preference.edit().putStringSet(MainActivity.KEY_CITY_IDS, citySet).apply();
+        cities.add(city);
     }
 
     public void refresh() {
@@ -361,7 +384,13 @@ public class MainActivity extends AppCompatActivity
         public void onBindViewHolder(CityViewHolder holder, int position) {
             CityInfoBean city = cities.get(position);
             holder.tvCity.setText(city.getCity());
-            holder.tvCity.setTextColor(Color.BLACK);
+            if (position == 0) {
+                Drawable drawable = getResources().getDrawable(R.drawable.ic_locate);
+                drawable.setBounds(0, 0, drawable.getMinimumWidth(), drawable.getMinimumHeight()); //设置边界
+                holder.tvCity.setCompoundDrawables(drawable, null, null, null);
+            } else {
+                holder.tvCity.setCompoundDrawables(null, null, null, null);
+            }
         }
 
         @Override

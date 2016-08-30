@@ -8,6 +8,7 @@ public class RefreshEvent {
     public static final int ADD_CITY = 0x01;
     public static final int DELETE_CITY = 0x02;
     public static final int GET_WEATHER = 0x03;
+    public static final int CHANGE_FRAGMENT = 0x04;
 
     private int type;
 

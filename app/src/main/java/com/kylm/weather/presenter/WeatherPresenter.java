@@ -110,7 +110,8 @@ public class WeatherPresenter {
 
                     @Override
                     public void onError(Throwable e) {
-                        System.out.println(e.getLocalizedMessage());
+                        String msg = e.getMessage();
+                        System.out.println(msg == null ? "error" : msg);
                     }
 
                     @Override
