@@ -61,8 +61,12 @@ public class AddCityActivity extends AppCompatActivity implements SearchViewLayo
         setContentView(R.layout.activity_add_city);
 
         ButterKnife.bind(this);
+        setTitle(R.string.add_city);
 
         preference = PreferenceManager.getDefaultSharedPreferences(this);
+
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         searchBar.setHint(getString(R.string.hint_input_city_name));
         searchBar.setOnToggleAnimationListener(this);

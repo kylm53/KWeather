@@ -5,6 +5,7 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_add">添加</string>
+    <string name="add_city">添加城市</string>
     <string name="hint_input_city_name">输入城市名称</string>
     <string name="city_located">定位城市</string>
     <string name="city_popular">热门城市</string>

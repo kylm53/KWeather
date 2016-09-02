@@ -25,7 +25,7 @@ public class CityHeadersAdapter extends CityRecyclerViewAdapter<RecyclerView.Vie
     private PopularCityAdapter popularCityAdapter;
 
     private HashMap<String, Integer> letterIndex = new HashMap<>();
-    private int headerHeigthInPix = 0;
+    private int headerHeightInPix = 0;
     private boolean showIndexHeader = true;
     private Context context;
 
@@ -46,7 +46,7 @@ public class CityHeadersAdapter extends CityRecyclerViewAdapter<RecyclerView.Vie
                 letterIndex.put(keyLetter, index + 2);
             }
 
-            headerHeigthInPix = showHeader ? Utils.dp2Px(context, 26) : 0;
+            headerHeightInPix = showHeader ? Utils.dp2Px(context, 26) : 0;
         }
 
     }
@@ -88,7 +88,7 @@ public class CityHeadersAdapter extends CityRecyclerViewAdapter<RecyclerView.Vie
                 }
 
                 //定位
-                if (position == 0) {
+                if (position == 0 && city.getId() == null) {
                     Drawable drawable = context.getResources().getDrawable(R.drawable.ic_locate);
                     drawable.setBounds(0, 0, drawable.getMinimumWidth(), drawable.getMinimumHeight()); //设置边界
                     cityViewHolder.tvCity.setCompoundDrawables(drawable, null, null, null);
@@ -160,7 +160,7 @@ public class CityHeadersAdapter extends CityRecyclerViewAdapter<RecyclerView.Vie
     }
 
     public int getHeaderHeightPix() {
-        return headerHeigthInPix;
+        return headerHeightInPix;
     }
 
     /**

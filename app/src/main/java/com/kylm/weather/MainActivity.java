@@ -86,7 +86,6 @@ public class MainActivity extends AppCompatActivity
         ButterKnife.bind(this);
 
         setSupportActionBar(toolbar);
-        toolbar.getBackground().setAlpha(0);
 
         final ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -234,7 +233,7 @@ public class MainActivity extends AppCompatActivity
 
     private void initCities() {
         cities = new ArrayList<>();
-        cities.add(new CityInfoBean());
+        cities.add(new CityInfoBean("正在定位", null));
         cityIds = preference.getStringSet(KEY_CITY_IDS, null);
         if (cityIds != null && cityIds.size() > 0) {
             Iterator<String> iterator = cityIds.iterator();
