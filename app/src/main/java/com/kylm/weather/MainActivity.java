@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -22,7 +23,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.baidu.location.BDLocation;
@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity
     @BindView(R.id.indicator)
     CircleIndicator indicator;
 
-    ImageButton btnAddCity;
+    FloatingActionButton btnAddCity;
 
     RecyclerView selectedCity;
     SelectedCityRecyclerAdapter selectedCityRecyclerAdapter;
@@ -94,13 +94,17 @@ public class MainActivity extends AppCompatActivity
 
         preference = PreferenceManager.getDefaultSharedPreferences(this);
 
-        btnAddCity = (ImageButton) navigationView.getHeaderView(0).findViewById(R.id.iv_add_city);
+        btnAddCity = (FloatingActionButton) navigationView.getHeaderView(0).findViewById(R.id.iv_add_city);
         btnAddCity.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                int centerX = (int) (v.getX() + v.getWidth() / 2);
+                int centerY = (int) (v.getY() + v.getHeight() / 2);
                 Intent intent = new Intent(MainActivity.this, AddCityActivity.class);
+                intent.putExtra("centerX", centerX);
+                intent.putExtra("centerY", centerY);
                 startActivity(intent);
-                drawer.closeDrawer(GravityCompat.START);
+//                drawer.closeDrawer(GravityCompat.START);
             }
         });
 

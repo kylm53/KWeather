@@ -44,4 +44,7 @@ dependencies {
     compile 'xyz.sahildave:searchviewlayout:0.6'
     compile 'com.nikhilpanju.recyclerviewenhanced:recyclerviewenhanced:1.1.0'
     compile 'com.timehop.stickyheadersrecyclerview:library:0.4.3'
+    compile ('com.github.ozodrukh:CircularReveal:2.0.1@aar') {
+        transitive = true;
+    }
 }

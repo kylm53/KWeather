@@ -38,6 +38,12 @@ public class CityHeadersAdapter extends CityRecyclerViewAdapter<RecyclerView.Vie
 
         letterIndex.put(context.getString(R.string.locate), 0);
         letterIndex.put(context.getString(R.string.popular), 1);
+        saveLetterIndex();
+
+        headerHeightInPix = showHeader ? Utils.dp2Px(context, 26) : 0;
+    }
+
+    private void saveLetterIndex() {
         for (int index = 0; index < getItemCount(); index++) {
             char letter = getItem(index).getHeaderPinyin().charAt(0);
             String keyLetter = String.valueOf(letter).toUpperCase();
@@ -46,9 +52,7 @@ public class CityHeadersAdapter extends CityRecyclerViewAdapter<RecyclerView.Vie
                 letterIndex.put(keyLetter, index + 2);
             }
 
-            headerHeightInPix = showHeader ? Utils.dp2Px(context, 26) : 0;
         }
-
     }
 
     @Override
